@@ -29,9 +29,14 @@ if [[ "$BUNDLE_ID" != "$EXPECTED_BUNDLE_ID" ]]; then
   exit 22
 fi
 
+# The Config directory may not exist in a fresh Git checkout. Create it
+# before generating the xcconfig consumed by XcodeGen.
+mkdir -p "$(dirname "$OUT")"
+
 cat > "$OUT" <<CFG
 // Generated automatically. Do not edit.
 GOOGLE_REVERSED_CLIENT_ID = $REVERSED_CLIENT_ID
 CFG
 
 echo "Firebase iOS config OK: $BUNDLE_ID"
+echo "Generated: Config/Generated.xcconfig"
