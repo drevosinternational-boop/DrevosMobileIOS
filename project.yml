@@ -25,15 +25,25 @@ targets:
     type: application
     platform: iOS
     deploymentTarget: "16.0"
+
+    # IMPORTANT:
+    # Do NOT add the entire DrevosIOS/Resources directory here.
+    # XcodeGen's `info:` block creates DrevosIOS/Resources/Info.plist.
+    # If the whole Resources directory is also copied as resources, Xcode can
+    # attempt both ProcessInfoPlistFile and Copy Bundle Resources for Info.plist,
+    # producing "Multiple commands produce .../Info.plist".
     sources:
       - path: DrevosIOS
         excludes:
           - Resources
-      - path: DrevosIOS/Resources
+
+      # Only actual bundle resources are listed explicitly.
+      - path: DrevosIOS/Resources/Assets.xcassets
         buildPhase: resources
-        excludes:
-          - Info.plist
-          - GoogleService-Info.plist.example
+
+      - path: DrevosIOS/Resources/GoogleService-Info.plist
+        buildPhase: resources
+
     info:
       path: DrevosIOS/Resources/Info.plist
       properties:
@@ -45,6 +55,7 @@ targets:
           - CFBundleTypeRole: Editor
             CFBundleURLSchemes:
               - "$(GOOGLE_REVERSED_CLIENT_ID)"
+
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: mobile.ios
@@ -58,6 +69,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         OTHER_LDFLAGS: "$(inherited) -ObjC"
+
     dependencies:
       - package: Firebase
         product: FirebaseCore
@@ -67,5 +79,6 @@ targets:
         product: FirebaseDatabase
       - package: GoogleSignIn
         product: GoogleSignIn
+
     scheme:
       gatherCoverageData: false
