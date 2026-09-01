@@ -46,7 +46,7 @@ targets:
               - "$(GOOGLE_REVERSED_CLIENT_ID)"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.drevos.smoker
+        PRODUCT_BUNDLE_IDENTIFIER: mobile.ios
         PRODUCT_NAME: DREVOS
         SWIFT_VERSION: 6.0
         IPHONEOS_DEPLOYMENT_TARGET: 16.0

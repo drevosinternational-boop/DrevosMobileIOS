@@ -30,7 +30,7 @@ Android `google-services.json` cannot be used for an iPhone app.
 In Firebase Console, open project `drevos-9827e` and add an **Apple/iOS app** with this exact bundle ID:
 
 ```
-com.drevos.smoker
+mobile.ios
 ```
 
 Download:
@@ -83,7 +83,7 @@ You need Apple Developer Program membership for normal signed/TestFlight distrib
 
 One-time setup:
 
-1. In Apple Developer / App Store Connect create the app ID `com.drevos.smoker`.
+1. In Apple Developer / App Store Connect create the app ID `mobile.ios`.
 2. Create the app in App Store Connect.
 3. In Codemagic add your App Store Connect API integration and name it exactly:
 
@@ -91,7 +91,7 @@ One-time setup:
 codemagic
 ```
 
-4. In Codemagic Code signing identities, generate/upload an Apple Distribution certificate and App Store provisioning profile for `com.drevos.smoker`.
+4. In Codemagic Code signing identities, generate/upload an Apple Distribution certificate and App Store provisioning profile for `mobile.ios`.
 5. Run workflow:
 
 ```

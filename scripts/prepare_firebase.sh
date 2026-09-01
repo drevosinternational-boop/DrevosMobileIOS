@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PLIST="$ROOT_DIR/DrevosIOS/Resources/GoogleService-Info.plist"
 OUT="$ROOT_DIR/Config/Generated.xcconfig"
-EXPECTED_BUNDLE_ID="com.drevos.smoker"
+EXPECTED_BUNDLE_ID="mobile.ios"
 
 if [[ ! -f "$PLIST" ]]; then
   echo "ERROR: Missing DrevosIOS/Resources/GoogleService-Info.plist"

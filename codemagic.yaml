@@ -42,7 +42,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.drevos.smoker
+        bundle_identifier: mobile.ios
       xcode: latest
       vars:
         XCODE_PROJECT: DrevosIOS.xcodeproj

@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
     <key>README</key>
-    <string>Download the real GoogleService-Info.plist from Firebase after registering the iOS app with bundle ID com.drevos.smoker. Do not rename this example file; place the real file beside it.</string>
+    <string>Download the real GoogleService-Info.plist from Firebase after registering the iOS app with bundle ID mobile.ios. Do not rename this example file; place the real file beside it.</string>
 </dict>
 </plist>
