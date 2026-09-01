@@ -1,0 +1,81 @@
+workflows:
+  ios-simulator-check:
+    name: Drevos iOS - compile check
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+      - name: Validate Firebase config
+        script: bash scripts/prepare_firebase.sh
+      - name: Generate Xcode project
+        script: xcodegen generate
+      - name: Resolve Swift packages
+        script: |
+          xcodebuild -resolvePackageDependencies \
+            -project DrevosIOS.xcodeproj \
+            -scheme DrevosIOS
+      - name: Build iOS simulator app
+        script: |
+          xcodebuild build \
+            -project DrevosIOS.xcodeproj \
+            -scheme DrevosIOS \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGN_IDENTITY='' \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
+      - /tmp/xcodebuild_logs/*.log
+
+  ios-testflight:
+    name: Drevos iOS - TestFlight
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.drevos.smoker
+      xcode: latest
+      vars:
+        XCODE_PROJECT: DrevosIOS.xcodeproj
+        XCODE_SCHEME: DrevosIOS
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+      - name: Validate Firebase config
+        script: bash scripts/prepare_firebase.sh
+      - name: Generate Xcode project
+        script: xcodegen generate
+      - name: Resolve Swift packages
+        script: |
+          xcodebuild -resolvePackageDependencies \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME"
+      - name: Apply Codemagic signing profiles
+        script: xcode-project use-profiles
+      - name: Set build number
+        script: |
+          agvtool new-version -all "${BUILD_NUMBER:-1}"
+      - name: Build signed IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false

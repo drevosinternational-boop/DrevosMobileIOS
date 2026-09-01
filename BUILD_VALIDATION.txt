@@ -1,0 +1,16 @@
+DREVOS iOS repository validation
+================================
+
+Prepared for GitHub -> Codemagic macOS -> TestFlight.
+
+Local checks completed in the generation environment:
+- Every Swift source file passed `swiftc -parse` syntax validation.
+- project.yml parsed as valid YAML.
+- codemagic.yaml parsed as valid YAML.
+- FIREBASE_RULES_REFERENCE.json parsed as valid JSON.
+- AppIcon asset catalog Contents.json parsed as valid JSON.
+- No pairing-code / smoker-claim-secret dependency exists in app source.
+
+A full Apple-framework typecheck/build requires macOS + Xcode. The included
+Codemagic workflow `ios-simulator-check` is intentionally the first full build
+step and should be run before TestFlight signing.

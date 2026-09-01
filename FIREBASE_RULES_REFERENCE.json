@@ -1,0 +1,41 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "standard_recipes": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        "email": { ".write": "auth != null && auth.uid == $uid" },
+        "name": { ".write": "auth != null && auth.uid == $uid" },
+        "photo_url": { ".write": "auth != null && auth.uid == $uid" },
+        "created_at": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.isNumber()"
+        },
+        "last_login_at": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.isNumber()"
+        },
+        "recipes": {
+          ".write": "auth != null && auth.uid == $uid"
+        },
+        "devices": {
+          "$smokerId": {
+            ".write": "auth != null && auth.uid == $uid && (data.exists() || (newData.exists() && root.child('smokers').child($smokerId).exists()))",
+            ".validate": "!newData.exists() || (newData.child('alias').isString() && newData.child('alias').val().length <= 80 && newData.child('linked_at').isNumber())"
+          }
+        }
+      }
+    },
+    "smokers": {
+      "$smokerId": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}

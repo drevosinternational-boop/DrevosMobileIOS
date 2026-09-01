@@ -1,0 +1,70 @@
+name: DrevosIOS
+options:
+  bundleIdPrefix: com.drevos
+  deploymentTarget:
+    iOS: "16.0"
+
+configs:
+  Debug: debug
+  Release: release
+
+configFiles:
+  Debug: Config/Generated.xcconfig
+  Release: Config/Generated.xcconfig
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    exactVersion: 12.17.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    exactVersion: 9.2.0
+
+targets:
+  DrevosIOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: DrevosIOS
+        excludes:
+          - Resources
+      - path: DrevosIOS/Resources
+        buildPhase: resources
+        excludes:
+          - GoogleService-Info.plist.example
+    info:
+      path: DrevosIOS/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: DREVOS
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLSchemes:
+              - "$(GOOGLE_REVERSED_CLIENT_ID)"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.drevos.smoker
+        PRODUCT_NAME: DREVOS
+        SWIFT_VERSION: 6.0
+        IPHONEOS_DEPLOYMENT_TARGET: 16.0
+        TARGETED_DEVICE_FAMILY: 1
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        VERSIONING_SYSTEM: apple-generic
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        OTHER_LDFLAGS: "$(inherited) -ObjC"
+    dependencies:
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseDatabase
+      - package: GoogleSignIn
+        product: GoogleSignIn
+    scheme:
+      gatherCoverageData: false
