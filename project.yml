@@ -32,6 +32,7 @@ targets:
       - path: DrevosIOS/Resources
         buildPhase: resources
         excludes:
+          - Info.plist
           - GoogleService-Info.plist.example
     info:
       path: DrevosIOS/Resources/Info.plist
