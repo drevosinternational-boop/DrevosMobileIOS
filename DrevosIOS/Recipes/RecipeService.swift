@@ -93,10 +93,20 @@ final class RecipeService {
     }
 
     func start(_ recipe: SmokerRecipe) async throws {
-        let smokerId = try await MainActor.run { try ActiveSmokerStore.shared.requireSmokerId() }
-        let canControl = await MainActor.run { ConnectionMonitor.shared.canControl(smokerId: smokerId) || AppSettings.shared.testingMode }
-        guard canControl else { throw RecipeError.message("Smoker connection is not ready.") }
-        guard !AppSettings.shared.testingMode else { return }
+        let smokerId = try await MainActor.run {
+            try ActiveSmokerStore.shared.requireSmokerId()
+        }
+
+        let controlState = await MainActor.run {
+            (
+                testingMode: AppSettings.shared.testingMode,
+                canControl: ConnectionMonitor.shared.canControl(smokerId: smokerId)
+            )
+        }
+        if controlState.testingMode { return }
+        guard controlState.canControl else {
+            throw RecipeError.message("Smoker connection is not ready.")
+        }
 
         let current = root.child("smokers").child(smokerId).child("current_recipe")
         let runningSnapshot = try await current.child("running").getData()
