@@ -4,34 +4,74 @@ workflows:
     max_build_duration: 120
     instance_type: mac_mini_m2
     environment:
-      xcode: latest
+      xcode: 26.4
     scripts:
       - name: Install XcodeGen
         script: |
           brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+
       - name: Validate Firebase config
         script: bash scripts/prepare_firebase.sh
+
       - name: Generate Xcode project
         script: xcodegen generate
+
+      - name: Verify generated project settings
+        script: |
+          set -e
+          xcodebuild -project DrevosIOS.xcodeproj -scheme DrevosIOS -showBuildSettings \
+            | grep -E 'PRODUCT_BUNDLE_IDENTIFIER =|SWIFT_VERSION =|SWIFT_STRICT_CONCURRENCY =|IPHONEOS_DEPLOYMENT_TARGET =' \
+            | sort -u
+
       - name: Resolve Swift packages
         script: |
           xcodebuild -resolvePackageDependencies \
             -project DrevosIOS.xcodeproj \
             -scheme DrevosIOS
+
       - name: Build iOS simulator app
         script: |
+          # Build only the native Apple-silicon simulator architecture on the M2.
+          # This avoids compiling the entire Firebase/leveldb graph twice for
+          # arm64 + x86_64 and gives us a deterministic raw log artifact.
+          set +e
+          mkdir -p "$CM_BUILD_DIR/build/logs"
+          rm -rf "$CM_BUILD_DIR/build/DerivedData" \
+                 "$CM_BUILD_DIR/build/DrevosSimulator.xcresult"
+
           xcodebuild build \
             -project DrevosIOS.xcodeproj \
             -scheme DrevosIOS \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4' \
+            -derivedDataPath "$CM_BUILD_DIR/build/DerivedData" \
+            -resultBundlePath "$CM_BUILD_DIR/build/DrevosSimulator.xcresult" \
+            -disableAutomaticPackageResolution \
+            -jobs 4 \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=YES \
+            COMPILER_INDEX_STORE_ENABLE=NO \
             CODE_SIGN_IDENTITY='' \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee "$CM_BUILD_DIR/build/logs/xcodebuild-simulator.log"
+
+          status=${PIPESTATUS[0]}
+
+          # Always save a tiny diagnostic file, even when Codemagic's browser
+          # view truncates the Xcode output.
+          grep -nE 'error:|fatal error:|BUILD FAILED|The following build commands failed|Command .* failed|exited with' \
+            "$CM_BUILD_DIR/build/logs/xcodebuild-simulator.log" \
+            > "$CM_BUILD_DIR/build/logs/errors-only.txt" || true
+
+          echo "xcodebuild exit status: $status" >> "$CM_BUILD_DIR/build/logs/errors-only.txt"
+          exit "$status"
+
     artifacts:
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
-      - /tmp/xcodebuild_logs/*.log
+      - build/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
+      - build/logs/**
+      - build/DrevosSimulator.xcresult/**
 
   ios-testflight:
     name: Drevos iOS - TestFlight
@@ -43,7 +83,7 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: mobile.ios
-      xcode: latest
+      xcode: 26.4
       vars:
         XCODE_PROJECT: DrevosIOS.xcodeproj
         XCODE_SCHEME: DrevosIOS
