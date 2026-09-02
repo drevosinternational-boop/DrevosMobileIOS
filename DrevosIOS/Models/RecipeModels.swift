@@ -31,7 +31,7 @@ struct SmokerRecipe: Identifiable, Equatable {
         let id = (snapshot.childSnapshot(forPath: "id").value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
             ?? snapshot.key
 
-        guard let id, !id.isEmpty else { return nil }
+        guard !id.isEmpty else { return nil }
 
         var stages: [RecipeStage] = []
         for case let stage as DataSnapshot in snapshot.childSnapshot(forPath: "stages").children {

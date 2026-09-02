@@ -1,32 +1,13 @@
-DREVOS iOS - V9 Swift language-mode fix
+DREVOS iOS RecipeModels compile fix V10
 
-Build #11 reached the Drevos Swift sources successfully.
-The full Xcode log contains exactly one compiler error:
-  ActiveSmokerStore.swift:23:9
-  cannot access property 'authHandle' ... from nonisolated deinit
+Replace only:
+  DrevosIOS/Models/RecipeModels.swift
 
-The important discovery is that the Drevos app target was still compiled with:
-  -swift-version 6
+Why:
+  snapshot.key is a non-optional String. After `?? snapshot.key`, local `id` is already String,
+  so `guard let id` is invalid. The corrected guard only checks whether the String is empty.
 
-That means the earlier Swift-5 compatibility setting was not present in the generated Xcode project used by build #11.
+Do not replace GoogleService-Info.plist or other project files.
 
-This patch fixes the configuration rather than changing app behavior:
-- project.yml: SWIFT_VERSION = 5.0
-- project.yml: SWIFT_STRICT_CONCURRENCY = minimal
-- codemagic.yaml: verifies those generated settings and FAILS EARLY if they are wrong
-- codemagic.yaml: also forces the same two values on the simulator xcodebuild command
-- preserves the generic arm64 simulator build from V8
-
-Replace ONLY these two root-level files:
-  project.yml
-  codemagic.yaml
-
-Do not replace or delete:
-  DrevosIOS/Resources/GoogleService-Info.plist
-
-After committing, the "Verify generated project settings" step must print:
-  PRODUCT_BUNDLE_IDENTIFIER = mobile.ios
-  SWIFT_VERSION = 5.0
-  SWIFT_STRICT_CONCURRENCY = minimal
-
-If that verification succeeds, the ActiveSmokerStore deinit issue is no longer a Swift-6 hard error.
+Optional validation from repository root:
+  py VERIFY_PATCH.py
