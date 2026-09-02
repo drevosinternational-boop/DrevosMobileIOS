@@ -19,19 +19,19 @@ final class HomeViewModel: ObservableObject {
 
     deinit { service.stop() }
 
-    func toggleHeating() { set(field: "is_heating", value: !state.heatingEnabled) { state.heatingEnabled = $0 as? Bool ?? state.heatingEnabled } }
-    func toggleDrying() { set(field: "is_drying", value: !state.dryingEnabled) { state.dryingEnabled = $0 as? Bool ?? state.dryingEnabled } }
-    func toggleConvection() { set(field: "is_convection_fan_on", value: !state.convectionEnabled) { state.convectionEnabled = $0 as? Bool ?? state.convectionEnabled } }
-    func toggleLight() { set(field: "is_light_on", value: !state.lightEnabled) { state.lightEnabled = $0 as? Bool ?? state.lightEnabled } }
-    func setSmoke(_ level: Int) { set(field: "smoke_level", value: min(100, max(0, level))) { state.smokeLevel = $0 as? Int ?? state.smokeLevel } }
-    func setTargetChamber(_ display: Int) { set(field: "target_camera_temp", value: settings.firebaseTemperature(fromDisplay: Double(display))) { state.targetChamberTemperature = Double($0 as? Int ?? Int(state.targetChamberTemperature)) } }
-    func setTargetProduct(_ display: Int) { set(field: "target_product_temp", value: settings.firebaseTemperature(fromDisplay: Double(display))) { state.targetProductTemperature = Double($0 as? Int ?? Int(state.targetProductTemperature)) } }
+    func toggleHeating() { set(field: "is_heating", value: !state.heatingEnabled) { [self] in self.state.heatingEnabled = $0 as? Bool ?? self.state.heatingEnabled } }
+    func toggleDrying() { set(field: "is_drying", value: !state.dryingEnabled) { [self] in self.state.dryingEnabled = $0 as? Bool ?? self.state.dryingEnabled } }
+    func toggleConvection() { set(field: "is_convection_fan_on", value: !state.convectionEnabled) { [self] in self.state.convectionEnabled = $0 as? Bool ?? self.state.convectionEnabled } }
+    func toggleLight() { set(field: "is_light_on", value: !state.lightEnabled) { [self] in self.state.lightEnabled = $0 as? Bool ?? self.state.lightEnabled } }
+    func setSmoke(_ level: Int) { set(field: "smoke_level", value: min(100, max(0, level))) { [self] in self.state.smokeLevel = $0 as? Int ?? self.state.smokeLevel } }
+    func setTargetChamber(_ display: Int) { set(field: "target_camera_temp", value: settings.firebaseTemperature(fromDisplay: Double(display))) { [self] in self.state.targetChamberTemperature = Double($0 as? Int ?? Int(self.state.targetChamberTemperature)) } }
+    func setTargetProduct(_ display: Int) { set(field: "target_product_temp", value: settings.firebaseTemperature(fromDisplay: Double(display))) { [self] in self.state.targetProductTemperature = Double($0 as? Int ?? Int(self.state.targetProductTemperature)) } }
 
     func stopRecipe() {
         guard let id = active.smokerId else { return }
         Task {
-            do { try await service.stopRecipe(smokerId: id) }
-            catch { errorMessage = error.localizedDescription }
+            do { try await self.service.stopRecipe(smokerId: id) }
+            catch { self.errorMessage = error.localizedDescription }
         }
     }
 
@@ -54,8 +54,8 @@ final class HomeViewModel: ObservableObject {
         guard let id = active.smokerId else { errorMessage = "No smoker selected"; return }
         guard ConnectionMonitor.shared.canControl(smokerId: id) else { errorMessage = "Smoker connection is not ready."; return }
         Task {
-            do { try await service.setState(smokerId: id, field: field, value: value) }
-            catch { errorMessage = error.localizedDescription }
+            do { try await self.service.setState(smokerId: id, field: field, value: value) }
+            catch { self.errorMessage = error.localizedDescription }
         }
     }
 }

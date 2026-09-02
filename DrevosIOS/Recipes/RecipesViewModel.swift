@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 @MainActor
 final class RecipesViewModel: ObservableObject {
@@ -41,17 +42,17 @@ final class RecipesViewModel: ObservableObject {
 
     func toggleFavorite(_ recipe: SmokerRecipe) {
         Task {
-            do { try await service.setFavorite(recipeId: recipe.id, favorite: !recipe.favorite) }
-            catch { errorMessage = error.localizedDescription }
+            do { try await self.service.setFavorite(recipeId: recipe.id, favorite: !recipe.favorite) }
+            catch { self.errorMessage = error.localizedDescription }
         }
     }
 
     func start(_ recipe: SmokerRecipe) {
         isWorking = true; errorMessage = nil
         Task {
-            do { try await service.start(recipe); infoMessage = "Recipe started" }
-            catch { errorMessage = error.localizedDescription }
-            isWorking = false
+            do { try await self.service.start(recipe); self.infoMessage = "Recipe started" }
+            catch { self.errorMessage = error.localizedDescription }
+            self.isWorking = false
         }
     }
 

@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 @MainActor
 final class DevicesViewModel: ObservableObject {
@@ -30,15 +31,15 @@ final class DevicesViewModel: ObservableObject {
     func select(_ id: String) { active.select(id) }
 
     func add(_ id: String) async -> Bool {
-        await perform(success: "Smoker connected") { try await service.addDevice(id: id) }
+        await perform(success: "Smoker connected") { [self] in try await self.service.addDevice(id: id) }
     }
 
     func rename(_ device: DeviceItem, to name: String) async -> Bool {
-        await perform(success: "Device name updated") { try await service.renameDevice(id: device.id, name: name) }
+        await perform(success: "Device name updated") { [self] in try await self.service.renameDevice(id: device.id, name: name) }
     }
 
     func remove(_ device: DeviceItem) async -> Bool {
-        await perform(success: "Smoker removed from this account") { try await service.removeDevice(id: device.id) }
+        await perform(success: "Smoker removed from this account") { [self] in try await self.service.removeDevice(id: device.id) }
     }
 
     func clearMessage() { errorMessage = nil; infoMessage = nil }

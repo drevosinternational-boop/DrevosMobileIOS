@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import UIKit
 import FirebaseAuth
 import FirebaseCore
@@ -42,9 +43,9 @@ final class AuthSession: ObservableObject {
             do {
                 _ = try await Auth.auth().signIn(withEmail: email, password: password)
             } catch {
-                errorMessage = error.localizedDescription
+                self.errorMessage = error.localizedDescription
             }
-            isLoading = false
+            self.isLoading = false
         }
     }
 
@@ -74,9 +75,9 @@ final class AuthSession: ObservableObject {
                 )
                 _ = try await Auth.auth().signIn(with: credential)
             } catch {
-                errorMessage = error.localizedDescription
+                self.errorMessage = error.localizedDescription
             }
-            isLoading = false
+            self.isLoading = false
         }
     }
 
@@ -89,9 +90,9 @@ final class AuthSession: ObservableObject {
         Task {
             do {
                 try await Auth.auth().sendPasswordReset(withEmail: email)
-                infoMessage = "Password reset email sent."
+                self.infoMessage = "Password reset email sent."
             } catch {
-                errorMessage = error.localizedDescription
+                self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -101,7 +102,7 @@ final class AuthSession: ObservableObject {
             GIDSignIn.sharedInstance.signOut()
             try Auth.auth().signOut()
         } catch {
-            errorMessage = error.localizedDescription
+            self.errorMessage = error.localizedDescription
         }
     }
 }
