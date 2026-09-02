@@ -1,0 +1,56 @@
+DREVOS iOS v5 validation report
+===============================
+Date: 2026-09-02
+
+SOURCE EVIDENCE
+---------------
+The complete current Codemagic/Xcode 26.4 log was searched for every app-source
+`error:` line. One unique error was present, repeated twice:
+
+  DrevosIOS/Core/TemperatureUnit.swift:12:16
+  static property 'shared' is not concurrency-safe because non-'Sendable'
+  type 'AppSettings' may have shared mutable state
+
+The same build already passed Firebase validation, XcodeGen generation, Swift
+package resolution, Info.plist handling, and reached app-source compilation.
+
+FILES CHANGED
+-------------
+1. DrevosIOS/Core/TemperatureUnit.swift
+   - import Combine
+   - TemperatureUnit conforms to Sendable
+   - AppSettings is @MainActor-isolated
+
+2. DrevosIOS/Recipes/RecipeService.swift
+   - ActiveSmokerStore access remains inside MainActor.run
+   - AppSettings and ConnectionMonitor are read together inside MainActor.run
+   - the returned Bool values are used outside the actor safely
+
+WHY BOTH FILES ARE NECESSARY
+----------------------------
+Adding @MainActor to AppSettings fixes the reported singleton declaration, but
+it also makes the previous direct AppSettings.shared access in RecipeService
+illegal. Updating RecipeService prevents that immediate second compiler error.
+
+LOCAL CHECKS COMPLETED
+----------------------
+PASS  All 29 Swift files parsed with Swift 6.2.1
+PASS  Exact patched TemperatureUnit.swift typechecked with:
+      -swift-version 6 -strict-concurrency=complete
+PASS  Exact patched RecipeService.swift typechecked with:
+      -swift-version 6 -strict-concurrency=complete
+      against API-compatible Firebase/app stubs
+PASS  Every AppSettings.shared usage audited
+PASS  project.yml and codemagic.yaml parsed as YAML
+PASS  JSON asset/rules files parsed
+PASS  Firebase plist example parsed
+PASS  prepare_firebase.sh syntax and simulated execution
+PASS  Info.plist remains excluded from copied bundle resources
+PASS  ZIP integrity, checksums, and post-extraction validation
+
+PLATFORM BOUNDARY
+-----------------
+A full Apple SDK build cannot be executed in this Linux environment. Codemagic
+is the authoritative macOS/Xcode build. The patch was nevertheless checked with
+the same Swift 6 language mode and complete strict-concurrency enforcement for
+the exact changed source files.
