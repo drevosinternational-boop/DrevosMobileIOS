@@ -19,9 +19,23 @@ workflows:
       - name: Verify generated project settings
         script: |
           set -e
-          xcodebuild -project DrevosIOS.xcodeproj -scheme DrevosIOS -showBuildSettings \
+          SETTINGS="$(xcodebuild -project DrevosIOS.xcodeproj -scheme DrevosIOS -showBuildSettings)"
+          echo "$SETTINGS" \
             | grep -E 'PRODUCT_BUNDLE_IDENTIFIER =|SWIFT_VERSION =|SWIFT_STRICT_CONCURRENCY =|IPHONEOS_DEPLOYMENT_TARGET =' \
             | sort -u
+
+          echo "$SETTINGS" | grep -q 'PRODUCT_BUNDLE_IDENTIFIER = mobile.ios' || {
+            echo "ERROR: Generated project has the wrong bundle identifier."
+            exit 31
+          }
+          echo "$SETTINGS" | grep -q 'SWIFT_VERSION = 5.0' || {
+            echo "ERROR: Generated app target is not in Swift 5 language mode."
+            exit 32
+          }
+          echo "$SETTINGS" | grep -q 'SWIFT_STRICT_CONCURRENCY = minimal' || {
+            echo "ERROR: Generated app target does not have minimal strict concurrency."
+            exit 33
+          }
 
       - name: Resolve Swift packages
         script: |
@@ -53,6 +67,8 @@ workflows:
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=YES \
             COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_VERSION=5.0 \
+            SWIFT_STRICT_CONCURRENCY=minimal \
             CODE_SIGN_IDENTITY='' \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \

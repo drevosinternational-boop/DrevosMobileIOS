@@ -60,7 +60,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: mobile.ios
         PRODUCT_NAME: DREVOS
-        SWIFT_VERSION: 6.0
+        SWIFT_VERSION: 5.0
+        SWIFT_STRICT_CONCURRENCY: minimal
         IPHONEOS_DEPLOYMENT_TARGET: 16.0
         TARGETED_DEVICE_FAMILY: 1
         MARKETING_VERSION: 0.1.0
