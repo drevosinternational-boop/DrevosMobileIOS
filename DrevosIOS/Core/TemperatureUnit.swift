@@ -1,6 +1,7 @@
 import Foundation
+import Combine
 
-enum TemperatureUnit: String, CaseIterable, Identifiable {
+enum TemperatureUnit: String, CaseIterable, Identifiable, Sendable {
     case celsius = "C"
     case fahrenheit = "F"
 
@@ -8,6 +9,7 @@ enum TemperatureUnit: String, CaseIterable, Identifiable {
     var symbol: String { self == .celsius ? "°C" : "°F" }
 }
 
+@MainActor
 final class AppSettings: ObservableObject {
     static let shared = AppSettings()
 
