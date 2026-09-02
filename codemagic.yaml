@@ -31,9 +31,10 @@ workflows:
 
       - name: Build iOS simulator app
         script: |
-          # Build only the native Apple-silicon simulator architecture on the M2.
-          # This avoids compiling the entire Firebase/leveldb graph twice for
-          # arm64 + x86_64 and gives us a deterministic raw log artifact.
+          # Compile for the generic iOS Simulator destination, arm64 only.
+          # Do not pin a simulator runtime/device name: Codemagic's Xcode image
+          # may ship runtime 26.4.1 while the SDK is 26.4, which makes an exact
+          # OS=26.4 destination fail before Swift compilation begins.
           set +e
           mkdir -p "$CM_BUILD_DIR/build/logs"
           rm -rf "$CM_BUILD_DIR/build/DerivedData" \
@@ -44,7 +45,7 @@ workflows:
             -scheme DrevosIOS \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4' \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$CM_BUILD_DIR/build/DerivedData" \
             -resultBundlePath "$CM_BUILD_DIR/build/DrevosSimulator.xcresult" \
             -disableAutomaticPackageResolution \
